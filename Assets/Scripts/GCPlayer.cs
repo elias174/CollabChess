@@ -102,6 +102,7 @@ public class GCPlayer : IClicker, IInputReceiver {
 					}
 				break;
 			case InputActionType.PLACE_PIECE:
+                // Event afer select a target position
 				Node tNode = Finder.RayHitFromScreen<Node>(Input.mousePosition);
 				if (tNode == null) break;
 				Piece tPiece = tNode.Piece;

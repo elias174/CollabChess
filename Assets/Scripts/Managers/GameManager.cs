@@ -229,6 +229,26 @@ public class GameManager : Singleton<GameManager> {
 		return hours.ToString(d2) + ":" + minutes.ToString(d2) + ":" + seconds.ToString(d2);
 	}
 
+    public void SimulateMove(string coord_from, string coord_to)
+    {
+        List<Piece> Pieces_local = GameManager.Instance.P1.Pieces;
+        foreach (Piece piece in Pieces_local)
+        {
+            if (coord_from == piece.Node.ChessCoords)
+            {
+                piece.Pickup();
+                piece.Compute();
+                piece.HighlightPossibleMoves();
+                piece.HighlightPossibleEats();
+                GameManager.Instance.GameState.Grab();
+                return;
+            }
+        }
+
+
+
+    }
+
 	public void SwitchPlayer() {
 		if (currentPlayer != null) {
 			currentPlayer.DisableInput();

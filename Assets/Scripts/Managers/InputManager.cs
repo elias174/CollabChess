@@ -47,11 +47,20 @@ public class InputManager : Singleton<InputManager> {
 		HighlightTile();
 
 		if (Input.GetMouseButtonUp(0)) {
-			if (GameManager.Instance.GameState.IsWaiting) {
+            /*Debug.Log("Clikc 0000");
+
+            List<Piece> Pieces_local = GameManager.Instance.P1.Pieces;
+            foreach(Piece piece in Pieces_local)
+            {
+                Debug.Log(piece.Node.ChessCoords);
+            }*/
+
+            if (GameManager.Instance.GameState.IsWaiting) {
 				UnHighlightTile();
 				InputEvent(InputActionType.GRAB_PIECE);
 			} else if (GameManager.Instance.GameState.IsHolding) {
-				InputEvent(InputActionType.PLACE_PIECE);
+                // Function to move piece after select
+                InputEvent(InputActionType.PLACE_PIECE);
 			}
 		}
 
