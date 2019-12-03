@@ -12,8 +12,15 @@ public class Movable : Scalable {
 	protected override void Start() {
 		base.Start();
 	}
-
-	public virtual void MoveToXZ(Node node, Action finishCallback) {
+    public float Speed
+    {
+        get { return speed; }
+    }
+    public void set_speed(float new_speed)
+    {
+        speed = new_speed;
+    }
+    public virtual void MoveToXZ(Node node, Action finishCallback) {
 		StopMoveCoroutine();
 		moveCoroutine = StartCoroutine(IEMoveToXZ(node, finishCallback));
 	}

@@ -133,7 +133,61 @@ public class GCPlayer : IClicker, IInputReceiver {
 		}
 	}
 
-	public void ClearPiecesPossibles() {
+    public void simulate_move(Node node_from, Node node_target, bool quick_move = false)
+    {
+        // First select action move
+        piece = node_from.Piece;
+        Piece tPiece = node_target.Piece;
+        piece.set_speed(200f);
+        if (Click(node_from) && piece && Has(piece) && Click(piece))
+        {
+            piece.Pickup();
+            piece.Compute();
+            piece.HighlightPossibleMoves();
+            piece.HighlightPossibleEats();
+            GameManager.Instance.GameState.Grab();
+        }
+
+        // Move action process
+        piece.set_speed(200f);
+        if (tPiece == null)
+        {
+            if (piece.IsPossibleMove(node_target))
+            {
+                if (Rules.IsCheckMove(this, piece, node_target, true))
+                {
+                    Debug.Log("Move checked"); // do nothing
+                }
+                else
+                {
+                    piece.MoveToXZ(node_target, Drop);
+                    GameManager.Instance.GameState.Place();
+                }
+            }
+        }
+        else
+        {
+            if (piece.IsPossibleEat(node_target))
+            {
+                if (Rules.IsCheckEat(this, piece, node_target, true))
+                {
+                    Debug.Log("Eat checked"); // do nothing
+                }
+                else
+                {
+                    GCPlayer oppPlayer = GameManager.Instance.Opponent(this);
+                    oppPlayer.RemovePiece(tPiece);
+                    AddEatenPieces(tPiece);
+                    // tPiece.ScaleOut(0.2f, 1.5f);
+                    piece.MoveToXZ(node_target, Drop);
+                    GameManager.Instance.GameState.Place();
+                }
+            }
+        }
+        piece.set_speed(5f);
+    }
+
+    public void ClearPiecesPossibles() {
 		for (int i = 0; i < pieces.Count; i++) {
 			pieces[i].ClearPossibleEats();
 			pieces[i].ClearPossibleMoves();
@@ -150,7 +204,7 @@ public class GCPlayer : IClicker, IInputReceiver {
 	private void Drop() {
 		piece.Drop();
 		piece.Compute();
-		GameManager.Instance.GameState.Release();
+        GameManager.Instance.GameState.Release();
 		piece = null;
 	}
 

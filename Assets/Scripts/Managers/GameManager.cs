@@ -236,17 +236,18 @@ public class GameManager : Singleton<GameManager> {
         {
             if (coord_from == piece.Node.ChessCoords)
             {
-                piece.Pickup();
-                piece.Compute();
-                piece.HighlightPossibleMoves();
-                piece.HighlightPossibleEats();
-                GameManager.Instance.GameState.Grab();
-                return;
+                List<Node> possible_moves = piece.PossibleMoves;
+                Node from_node = piece.Node;
+                foreach(Node tNode in possible_moves)
+                {
+                    if(coord_to == tNode.ChessCoords)
+                    {
+                        currentPlayer.simulate_move(from_node, tNode);
+                        return;
+                    }
+                }
             }
         }
-
-
-
     }
 
 	public void SwitchPlayer() {
@@ -257,11 +258,11 @@ public class GameManager : Singleton<GameManager> {
 		if (currentPlayer == p2) {
 			currentPlayer = p1;
 			whiteTurn = true;
-			mainCamera.GetComponent<SwitchAngle>().SwitchCamera(PlayerType.P1);
+			// mainCamera.GetComponent<SwitchAngle>().SwitchCamera(PlayerType.P1);
 		} else if (currentPlayer == p1) {
 			currentPlayer = p2;
 			whiteTurn = false;
-			mainCamera.GetComponent<SwitchAngle>().SwitchCamera(PlayerType.P2);
+			// mainCamera.GetComponent<SwitchAngle>().SwitchCamera(PlayerType.P2);
 		} else {
 			currentPlayer = p1;
 			whiteTurn = true;
