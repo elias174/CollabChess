@@ -18,6 +18,14 @@ public class Move
     public string target_position;
 }
 
+
+[Serializable]
+public class PossibleMove
+{
+    public int id;
+    public int player_id;
+    public Move[] moves;
+}
 [Serializable]
 public class Player
 {

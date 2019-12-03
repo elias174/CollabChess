@@ -8,6 +8,7 @@ using System;
 public class MovesBehaviour : MonoBehaviour
 {
     public GameObject item;
+    public GameObject itemPossible;
     public string source;
     public List<Tuple<string, string>> moves = new List<Tuple<string, string>>();
 
@@ -16,21 +17,41 @@ public class MovesBehaviour : MonoBehaviour
         Debug.Log("Making moves from the 'Moves' list");
         if ( moves.ToArray().Length >= 0)
         {
-            for(int i=0; i < moves.ToArray().Length; i++)
+            RestClient.Post<PossibleMove>(new RequestHelper
             {
-                RestClient.Request(new RequestHelper
-                {
-                    Uri = "https://ihc-chess-server.herokuapp.com/make_move",
-                    Method = "POST",
-                    Timeout = 10,
-                    Params = new Dictionary<string, string> { { "game_id", GlobalVars.player_current_game }, { "player_id", GlobalVars.player_id },
-                                                                { "source_position", moves.ToArray()[i].Item1 },
-                                                                { "target_position", moves.ToArray()[i].Item2 } }
-                });
+                Uri = "https://ihc-chess-server.herokuapp.com/make_possible_move_list",
+                Method = "POST",
+                Timeout = 10,
+                Params = new Dictionary<string, string> { { "game_id", GlobalVars.player_current_game }, { "player_id", GlobalVars.player_id }}
             }
+            ).Then( response =>
+            {
+                for (int i = 0; i < moves.ToArray().Length; i++)
+                {
+                    RestClient.Request(new RequestHelper
+                    {
+                        Uri = "https://ihc-chess-server.herokuapp.com/make_possible_move",
+                        Method = "POST",
+                        Timeout = 10,
+                        Params = new Dictionary<string, string> {{ "player_id", GlobalVars.player_id },
+                                                                { "source_position", moves.ToArray()[i].Item1 },
+                                                                { "target_position", moves.ToArray()[i].Item2 },
+                                                                { "list_id", response.id.ToString() }}
+                    });
+                }
+            }
+            
+            
+            );
+            
             
         }
         
+    }
+
+    public void selectPossibleMoves(Text moves)
+    {
+        Debug.Log(moves.text);
     }
 
     public void addMove()
@@ -55,6 +76,25 @@ public class MovesBehaviour : MonoBehaviour
                 newitem.GetComponent<RectTransform>().SetParent(panel.transform);
                 newitem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 200);
                 newitem.GetComponent<RectTransform>().GetComponentInChildren<Text>().text = string.Format("{0} // {1}", response[i].source_position, response[i].target_position);
+
+            }
+        });
+
+        RestClient.GetArray<PossibleMove>("https://ihc-chess-server.herokuapp.com/list-possible-moves/" + GlobalVars.player_current_game).Then(response => {
+            for (int i = 0; i < response.Length; i++)
+            {
+                var panel = GameObject.Find("PossibleMoves");
+
+                for (int j = 0; j < response[i].moves.Length; i++)
+                {
+                    GameObject newitem = (GameObject)Instantiate(itemPossible);
+                    newitem.transform.parent = panel.transform.parent;
+                    newitem.GetComponent<RectTransform>().SetParent(panel.transform);
+                    newitem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 200);
+                    newitem.GetComponent<RectTransform>().GetComponentInChildren<Text>().text = string.Format("Propuesta {0}", response[i].id);
+                    newitem.transform.Find("possiblemovesId").GetComponent<Text>().text = response[i].id.ToString();
+
+                }
 
             }
         });
