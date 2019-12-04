@@ -13,6 +13,7 @@ public class MovesBehaviour : MonoBehaviour
     public GameObject item;
     public GameObject itemPossible;
     public GameObject prefabButton;
+    public GameObject vote_button;
     public string source;
     public List<Tuple<string, string>> moves = new List<Tuple<string, string>>();
     public List<Move> official_moves = new List<Move>();
@@ -56,6 +57,7 @@ public class MovesBehaviour : MonoBehaviour
 
     public void selectPossibleMoves(Text moves)
     {
+        vote_button.transform.Find("ListIdToVote").GetComponent<Text>().text = moves.text;
     }
 
     public void addMove()
@@ -78,6 +80,27 @@ public class MovesBehaviour : MonoBehaviour
     {
         Debug.Log("Tryying do moooves");
         StartCoroutine(simulate_moves(moves, slow_motion));
+    }
+
+    public void Vote(Text ListToVote)
+    {
+        Debug.Log("Voting for list of moves -->" + ListToVote.text);
+        if( ListToVote.text != "null")
+        {
+            RestClient.Request(new RequestHelper
+            {
+                Uri = "https://ihc-chess-server.herokuapp.com/vote",
+                Method = "POST",
+                Timeout = 10,
+                Params = new Dictionary<string, string> { { "list_id", ListToVote.text }, { "game_id", GlobalVars.player_current_game } }
+
+            });
+        }
+        else
+        {
+            Debug.Log("Debe seleccionar una jugada para votar por ella");
+        }
+        
     }
     IEnumerator simulate_moves(List<Move> moves, bool slow_motion)
     {
@@ -134,7 +157,6 @@ public class MovesBehaviour : MonoBehaviour
                     moves_received.Add(move);
                 }
                 tempButton.onClick.AddListener(() => DoMoves(moves_received, true));
-
                 newitem.transform.Find("possiblemovesId").GetComponent<Text>().text = response[i].id.ToString();
 
             }
