@@ -56,7 +56,7 @@ public class LobbyBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(" update in lobby -> player_id: " + GlobalVars.player_id + " game_id: " + GlobalVars.player_current_game);
+        // Debug.Log(" update in lobby -> player_id: " + GlobalVars.player_id + " game_id: " + GlobalVars.player_current_game);
     }
 
     public void enterGame(Text gameId)

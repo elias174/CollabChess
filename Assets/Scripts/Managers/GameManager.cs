@@ -231,7 +231,7 @@ public class GameManager : Singleton<GameManager> {
 
     public void SimulateMove(string coord_from, string coord_to)
     {
-        List<Piece> Pieces_local = GameManager.Instance.P1.Pieces;
+        List<Piece> Pieces_local = GameManager.Instance.currentPlayer.Pieces;
         foreach (Piece piece in Pieces_local)
         {
             if (coord_from == piece.Node.ChessCoords)
