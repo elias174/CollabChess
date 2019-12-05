@@ -16,4 +16,14 @@ public class Moves : MonoBehaviour
         GameManager.Instance.SimulateMove(from, to);
 
     }
+    public void UndoTemporalMove()
+    {
+        GameManager.Instance.restart_board_with_official_moves();
+    }
+
+    public void SendTemporalMove()
+    {
+        GameManager.Instance.SendTemporalMoveToServer();
+    }
+
 }

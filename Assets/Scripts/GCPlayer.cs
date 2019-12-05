@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public enum PlayerType {
 		P1, P2
@@ -76,6 +77,7 @@ public class GCPlayer : IClicker, IInputReceiver {
 	public void OnInputEvent(InputActionType action) {
 		switch (action) {
 			case InputActionType.GRAB_PIECE:
+                if (GameManager.Instance.temporal_move != null) break;
 				Node gNode = Finder.RayHitFromScreen<Node>(Input.mousePosition);
 				if (gNode == null) break;
 				piece = gNode.Piece;
@@ -86,6 +88,7 @@ public class GCPlayer : IClicker, IInputReceiver {
 					piece.Compute();
 					piece.HighlightPossibleMoves();
 					piece.HighlightPossibleEats();
+                    GameManager.Instance.temporal_source_position = piece.ChessCoords;
 					GameManager.Instance.GameState.Grab();
 				} 
 
@@ -106,7 +109,8 @@ public class GCPlayer : IClicker, IInputReceiver {
 				Node tNode = Finder.RayHitFromScreen<Node>(Input.mousePosition);
 				if (tNode == null) break;
 				Piece tPiece = tNode.Piece;
-				if (tPiece == null) {
+                GameManager.Instance.temporal_target_position = tNode.ChessCoords;
+                if (tPiece == null) {
 					if (piece.IsPossibleMove(tNode)) {
 						if (Rules.IsCheckMove(this,piece,tNode, true)) {
 							Debug.Log("Move checked"); // do nothing
@@ -129,7 +133,11 @@ public class GCPlayer : IClicker, IInputReceiver {
 						}
 					}
 				}
-				break;
+                if (GameManager.Instance.temporal_move == null) {
+                    GameManager.Instance.temporal_move = Tuple.Create<string, string>(
+                        GameManager.Instance.temporal_source_position, GameManager.Instance.temporal_target_position);
+                }
+                break;
 		}
 	}
 
