@@ -289,4 +289,9 @@ public class Grid : MonoBehaviour {
 	void OnDrawGizmos() {
 		Gizmos.DrawWireCube(transform.position, new Vector3(2,2,2));
 	}
+
+    public void Reset()
+    {
+
+    }
 }

@@ -23,6 +23,7 @@ public class GameManager : Singleton<GameManager>
     private LayerMask clickableMask;
     [SerializeField]
     private Color pieceHighlightColor;
+
     [SerializeField]
     private Material highlightMoveMaterial;
     [SerializeField]
@@ -63,9 +64,11 @@ public class GameManager : Singleton<GameManager>
     public string temporal_target_position;
     public Tuple<string, string> temporal_move;
     public List<Move> all_moves;
+    public bool finished_receiving_from_server = false;
 
     private bool whiteTurn;
     private float whiteTimer;
+    public bool finished_restarted;
     private float blackTimer;
     //END of EXPERIMENT_TIMER
 
@@ -159,6 +162,7 @@ public class GameManager : Singleton<GameManager>
         SetTimers();
     }
 
+
     //EXPERIMENT_TIMER
     void SetTimers()
     {
@@ -196,6 +200,9 @@ public class GameManager : Singleton<GameManager>
 
         //all objects are now ready
         ready = true;
+        yield return StartCoroutine(fill_all_moves_from_server());
+        yield return StartCoroutine(simulate_moves(all_moves, false));
+
     }
 
     // Update is called once per frame
@@ -261,6 +268,11 @@ public class GameManager : Singleton<GameManager>
         blackTimerText.text = "BLACK\n" + GetChessTimeFormat(blackTimer);
     }
 
+    public void restart_board_with_official_moves()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
     //EXPERIMENT_TIMER
     string GetChessTimeFormat(float timeInSeconds)
     {
@@ -294,18 +306,22 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
-    public void restart_board_with_official_moves()
+    IEnumerator fill_all_moves_from_server()
     {
-        temporal_move = null;
-        temporal_source_position = null;
-        temporal_target_position = null;
-        all_moves.Reverse();
-        StartCoroutine(simulate_moves(all_moves, false));
-        all_moves.Reverse();
+        RestClient.GetArray<Move>("https://ihc-chess-server.herokuapp.com/list-moves/" + GlobalVars.player_current_game).Then(response => {
+            UnityEngine.Debug.Log("Receiving moves from server....");
+            for (int i = 0; i < response.Length; i++)
+            {
+                all_moves.Add(response[i]);
+            }
+            finished_receiving_from_server = true;
+        });
+        yield return null;
     }
+
     IEnumerator simulate_moves(List<Move> moves, bool slow_motion)
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        while (!finished_receiving_from_server) yield return null;
         foreach (Move move in Enumerable.Reverse(moves))
         {
             PlayerType type_a = GameManager.Instance.CurrentPlayer.Type;
@@ -313,6 +329,8 @@ public class GameManager : Singleton<GameManager>
             while (type_a == GameManager.Instance.CurrentPlayer.Type) { yield return null; }
             if (slow_motion) yield return new WaitForSeconds(1);
         }
+        finished_restarted = true;
+        UnityEngine.Debug.Log("Recreateeed all official moves");
     }
 
     public void SendTemporalMoveToServer()
