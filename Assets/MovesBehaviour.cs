@@ -13,6 +13,7 @@ public class MovesBehaviour : MonoBehaviour
     public GameObject item;
     public GameObject itemPossible;
     public GameObject prefabButton;
+    public GameObject vote_button;
     public string source;
     public List<Tuple<string, string>> moves = new List<Tuple<string, string>>();
     public List<Move> official_moves = new List<Move>();
@@ -52,6 +53,32 @@ public class MovesBehaviour : MonoBehaviour
             
         }
         
+    }
+
+    public void selectPossibleMoves(Text moves)
+    {
+        vote_button.transform.Find("ListIdToVote").GetComponent<Text>().text = moves.text;
+    }
+
+    public void Vote(Text ListToVote)
+    {
+        Debug.Log("Voting for list of moves -->" + ListToVote.text);
+        if (ListToVote.text != "null")
+        {
+            RestClient.Request(new RequestHelper
+            {
+                Uri = "https://ihc-chess-server.herokuapp.com/vote",
+                Method = "POST",
+                Timeout = 10,
+                Params = new Dictionary<string, string> { { "list_id", ListToVote.text }, { "game_id", GlobalVars.player_current_game } }
+
+            });
+        }
+        else
+        {
+            Debug.Log("Debe seleccionar una jugada para votar por ella");
+        }
+        SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().name);
     }
 
     public void addMove()
@@ -119,17 +146,20 @@ public class MovesBehaviour : MonoBehaviour
         });
 
         RestClient.GetArray<PossibleMove>("https://ihc-chess-server.herokuapp.com/list-possible-moves/" + GlobalVars.player_current_game).Then(response => {
+            var panel = GameObject.Find("PossibleMoves");
             for (int i = 0; i < response.Length; i++)
             {
-                var panel = GameObject.Find("PossibleMoves");
+                GameObject btn_vote = (GameObject)Instantiate(vote_button);
+                btn_vote.transform.parent = panel.transform.parent;
+                btn_vote.GetComponent<RectTransform>().SetParent(panel.transform);
+                btn_vote.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, 0,200);
+                btn_vote.transform.Find("ListIdToVote").GetComponent<Text>().text = response[i].id.ToString();
+
                 GameObject newitem = (GameObject)Instantiate(itemPossible);
                 newitem.transform.parent = panel.transform.parent;
-                // newitem.AddComponent<List<Move>>();
                 newitem.GetComponent<RectTransform>().SetParent(panel.transform);
                 newitem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 200);
                 newitem.GetComponent<RectTransform>().GetComponentInChildren<Text>().text = string.Format("Propuesta {0}", response[i].id);
-
-                //Button tempButton = newitem.GetComponent<Button>();
                 Button tempButton = newitem.GetComponent<Button>();
                 List<Move> moves_received = new List<Move>(new Move[] {});
                 foreach (Move move in response[i].moves)
@@ -137,10 +167,11 @@ public class MovesBehaviour : MonoBehaviour
                     moves_received.Add(move);
                 }
                 tempButton.onClick.AddListener(() => DoMoves(moves_received, true));
-
                 newitem.transform.Find("possiblemovesId").GetComponent<Text>().text = response[i].id.ToString();
 
             }
+
+
         });
         InvokeRepeating("update_moves", 2f, 2f);
 
@@ -166,6 +197,35 @@ public class MovesBehaviour : MonoBehaviour
             }
 
 
+        });
+
+        RestClient.GetArray<PossibleMove>("https://ihc-chess-server.herokuapp.com/list-possible-moves/" + GlobalVars.player_current_game).Then(response => {
+            var panel1 = GameObject.Find("PossibleMoves");
+            if (response.Length > panel1.transform.childCount)
+            {
+                int last_index = response.Length - 1;
+
+                GameObject btn_vote = (GameObject)Instantiate(vote_button);
+                btn_vote.transform.parent = panel1.transform.parent;
+                btn_vote.GetComponent<RectTransform>().SetParent(panel1.transform);
+                btn_vote.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Right, 0, 200);
+                btn_vote.transform.Find("ListIdToVote").GetComponent<Text>().text = response[last_index].id.ToString();
+
+                GameObject newitem = (GameObject)Instantiate(itemPossible);
+                newitem.transform.parent = panel1.transform.parent;
+                newitem.GetComponent<RectTransform>().SetParent(panel1.transform);
+                newitem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 200);
+                newitem.GetComponent<RectTransform>().GetComponentInChildren<Text>().text = string.Format("Propuesta {0}", response[last_index].id);
+                Button tempButton = newitem.GetComponent<Button>();
+                List<Move> moves_received = new List<Move>(new Move[] { });
+                foreach (Move move in response[last_index].moves)
+                {
+                    moves_received.Add(move);
+                }
+                tempButton.onClick.AddListener(() => DoMoves(moves_received, true));
+                newitem.transform.Find("possiblemovesId").GetComponent<Text>().text = response[last_index].id.ToString();
+
+            }
         });
     }
     void Update()
