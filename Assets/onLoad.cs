@@ -14,9 +14,7 @@ public class onLoad : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log("asdasdadas");
         RestClient.GetArray<Game>("https://ihc-chess-server.herokuapp.com/list-games").Then(response => {
-            Debug.Log(response[0].id);
             for (int i = 0; i < response.Length; i++)
             {
                 GameObject newitem = (GameObject)Instantiate(item);
@@ -29,14 +27,34 @@ public class onLoad : MonoBehaviour
             }
 
         });
+        InvokeRepeating("update_rooms", 2f, 2f);
 
-        
 
+
+    }
+
+    public void update_rooms()
+    {
+        RestClient.GetArray<Game>("https://ihc-chess-server.herokuapp.com/list-games").Then(response => {
+            var panel1 = GameObject.Find("ContentRooms");
+            if (response.Length > panel1.transform.childCount)
+            {
+                int last_index = response.Length - 1;
+                GameObject newitem = (GameObject)Instantiate(item);
+                newitem.transform.parent = panel1.transform.parent;
+                newitem.GetComponent<RectTransform>().SetParent(panel1.transform);
+                newitem.GetComponent<RectTransform>().SetInsetAndSizeFromParentEdge(RectTransform.Edge.Left, 0, 200);
+                newitem.GetComponent<RectTransform>().GetComponentInChildren<Text>().text = string.Format("Sala:{0} ----- Jugadores:({1}/{2})", last_index + 1, response[last_index].players.Length, 5);
+                newitem.transform.Find("gameId").GetComponent<Text>().text = response[last_index].id;
+
+            }
+        });
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
+
     }
 }

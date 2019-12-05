@@ -48,6 +48,8 @@ public class LobbyBehavior : MonoBehaviour
 {
     // Start is called before the first frame update
     public GameObject itemRoom;
+    public Text tex_id;
+
     void Start()
     {
 
@@ -79,7 +81,6 @@ public class LobbyBehavior : MonoBehaviour
 
     public void exitGame()
     {
-        Debug.Log(GlobalVars.player_name);
         RestClient.Request(new RequestHelper
         {
             Uri = "https://ihc-chess-server.herokuapp.com/exit_game",
@@ -92,6 +93,15 @@ public class LobbyBehavior : MonoBehaviour
             GlobalVars.player_current_game = "";
             SceneManager.LoadScene("lobby");
         });
+    }
+
+    public void create_game()
+    {
+        RestClient.Get<Game>("https://ihc-chess-server.herokuapp.com/create-game").Then(response => {
+            tex_id.text = response.id;
+            }
+        );
+
     }
 
     public void GoToMainMenu()
