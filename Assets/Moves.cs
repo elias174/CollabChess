@@ -18,8 +18,7 @@ public class Moves : MonoBehaviour
     }
     public void UndoTemporalMove()
     {
-        // GameManager.Instance.restart_board_with_official_moves();
-        GameManager.Instance.Grid.Reset();
+        GameManager.Instance.restart_board_with_official_moves();
     }
 
     public void SendTemporalMove()
